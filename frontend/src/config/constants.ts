@@ -2,8 +2,8 @@
  * Application Configuration Constants
  */
 
-// Backend API Base URL
-export const API_BASE_URL = 'http://127.0.0.1:8000';
+// Backend API Base URL - Use environment variable or default to localhost for dev
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -15,4 +15,4 @@ export const API_ENDPOINTS = {
 };
 
 // Frontend URL
-export const FRONTEND_URL = 'http://localhost:8080';
+export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:8080';

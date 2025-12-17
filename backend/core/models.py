@@ -22,7 +22,7 @@ class SiteSettings(models.Model):
         return 'Site Settings'
 
     def get_embed_youtube_url(self):
-        """Convert any YouTube URL format to embed format"""
+        """Convert any YouTube URL format to embed format with autoplay, mute, and loop"""
         if not self.youtube_link:
             return None
         
@@ -37,12 +37,14 @@ class SiteSettings(models.Model):
             # Watch format: https://www.youtube.com/watch?v=VIDEO_ID
             video_id = url.split('v=')[-1].split('&')[0]
         elif 'youtube.com/embed/' in url:
-            # Already in embed format
+            # Already in embed format - add loop parameters if not present
+            if 'loop=1' not in url:
+                return url + ('&' if '?' in url else '?') + 'loop=1&playlist=' + url.split('/')[-1].split('?')[0]
             return url
         
-        # Convert to embed format
+        # Convert to embed format with loop parameters
         if video_id:
-            return f'https://www.youtube.com/embed/{video_id}?autoplay=1&mute=1'
+            return f'https://www.youtube.com/embed/{video_id}?autoplay=1&mute=1&loop=1&playlist={video_id}'
         
         return url
 

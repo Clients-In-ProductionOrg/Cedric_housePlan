@@ -36,12 +36,16 @@ import { ImageGallery } from '@/components/ImageGallery';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import Header from '@/components/Header';
 
-// Helper function to convert YouTube URLs to embed format
+// Helper function to convert YouTube URLs to embed format with loop
 function convertYoutubeUrl(url: string): string {
   if (!url) return '';
   
-  // Already an embed URL
+  // Already an embed URL - ensure it has loop parameters
   if (url.includes('youtube.com/embed/')) {
+    if (!url.includes('loop=1')) {
+      const videoId = url.split('/')[4]?.split('?')[0] || '';
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+    }
     return url;
   }
   

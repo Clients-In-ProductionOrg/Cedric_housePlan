@@ -4,6 +4,7 @@ import { Grid3x3, List, CircleHelp, Heart, Home, Bed, Bath, Car, Search, X, Chev
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { API_ENDPOINTS } from '@/config/constants';
+import { loadYocoScript, initializeYoco, processYocoPayment, formatAmountForYoco } from '@/lib/yoco';
 import {
   Select,
   SelectContent,
@@ -83,6 +84,8 @@ function HousePlanCard({ plan }: { plan: HousePlan }) {
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
   const [contactInfo, setContactInfo] = useState({ 
     name: '', 
     email: '', 
@@ -470,20 +473,24 @@ function HousePlanCard({ plan }: { plan: HousePlan }) {
               </div>
 
               <div className="space-y-3">
+                {paymentError && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {paymentError}
+                  </div>
+                )}
                 <Button 
                   className="w-full" 
                   size="lg"
-                  onClick={() => {
-                    setShowPaymentModal(false);
-                    setShowSuccessModal(true);
-                  }}
+                  disabled={isProcessingPayment}
+                  onClick={() => handleYocoPayment(plan)}
                 >
-                  Complete Purchase
+                  {isProcessingPayment ? 'Processing...' : 'Complete Purchase'}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={() => setShowPaymentModal(false)}
+                  disabled={isProcessingPayment}
                 >
                   Cancel
                 </Button>
@@ -648,6 +655,58 @@ export const HousePlans = () => {
 
     fetchPlans();
   }, []);
+
+  // Initialize Yoco payment gateway
+  useEffect(() => {
+    loadYocoScript()
+      .then(() => {
+        initializeYoco();
+        console.log('Yoco SDK loaded and initialized');
+      })
+      .catch((error) => {
+        console.error('Failed to load Yoco SDK:', error);
+        setPaymentError('Payment gateway failed to load. Please refresh the page.');
+      });
+  }, []);
+
+  // Handle Yoco payment processing
+  const handleYocoPayment = async (plan: HousePlan) => {
+    if (!contactInfo.name || !contactInfo.email || !contactInfo.phone) {
+      setPaymentError('Please fill in all contact information');
+      return;
+    }
+
+    try {
+      setIsProcessingPayment(true);
+      setPaymentError('');
+
+      // Call Yoco payment
+      const amountInCents = formatAmountForYoco(plan.price);
+      const result = await processYocoPayment(
+        amountInCents,
+        contactInfo.email,
+        contactInfo.phone,
+        contactInfo.name
+      );
+
+      console.log('Yoco payment result:', result);
+
+      // If payment is successful
+      if (result && result.success) {
+        // Here you would normally send the transaction details to your backend
+        console.log('Payment successful:', result);
+        setShowPaymentModal(false);
+        setShowSuccessModal(true);
+      } else {
+        setPaymentError(result?.message || 'Payment failed. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Payment processing error:', error);
+      setPaymentError(error?.message || 'An error occurred during payment. Please try again.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   // Listen for search events from header
   useEffect(() => {

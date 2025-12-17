@@ -165,5 +165,6 @@ REST_FRAMEWORK = {
 
 # Admin login restrictions
 ADMIN_RESTRICT_TO_STAFF = True
-# Logout redirect URL
-LOGOUT_REDIRECT_URL = 'http://localhost:8080/'
+# Logout redirect URL - use FRONTEND_URL from environment
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8080/')
+LOGOUT_REDIRECT_URL = FRONTEND_URL

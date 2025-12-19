@@ -15,7 +15,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-cedric-production-key
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Parse ALLOWED_HOSTS from environment
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    'cedric-houseplan-backend.onrender.com',  # Production Render domain
+    'localhost',
+    '127.0.0.1',
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -34,9 +38,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # MUST be first for CORS to work!
     'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',  # MUST be before CSRF!
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -68,6 +72,7 @@ IS_PRODUCTION = not DEBUG
 # Security settings for production
 SECURE_SSL_REDIRECT = IS_PRODUCTION
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True  # Required for Render proxy to detect correct hostname
 SECURE_HSTS_SECONDS = 31536000 if IS_PRODUCTION else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = IS_PRODUCTION
 SECURE_HSTS_PRELOAD = IS_PRODUCTION
